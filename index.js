@@ -4,7 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const Razorpay = require("razorpay");
 require("dotenv").config({ path: "./.env" });
-mongoose.connect(process.env.MONGO_URL);
+mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const app = express();
 app.use(helmet());
