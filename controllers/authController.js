@@ -3,6 +3,7 @@ const SignUp = require("../models/SignUpModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
+const SignUpModel = require("../models/SignUpModel");
 
 exports.emailCheck = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -33,23 +34,28 @@ exports.emailCheck = asyncHandler(async (req, res) => {
 });
 
 exports.SignUpUser = asyncHandler(async (req, res) => {
-  const { password, email } = req.body;
-  const found = await SignUp.findOne({ email });
-  if (found) {
-    return res.status(409).json({
-      msg: "Email Already exist",
+  const { password } = req.body;
+
+  try {
+
+    const hashPass = await bcrypt.hash(password, 10);
+    const result = await SignUp.create({
+      ...req.body,
+      password: hashPass,
+    }); // req.body frontent date catch
+    console.log(result);
+    if (res) {
+      res.json({
+        message: "user signup successfully",
+        data: result
+      });
+
+    }
+  } catch (error) {
+    res.json({
+      message: error,
     });
   }
-
-  const hashPass = await bcrypt.hash(password, 10);
-  const result = await SignUp.create({
-    ...req.body,
-    password: hashPass,
-  }); // req.body frontent date catch
-
-  res.json({
-    message: "user signup successfully",
-  });
 });
 
 // update user

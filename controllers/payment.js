@@ -4,8 +4,6 @@ const router = require("express").Router();
 
 router.post('/addmoney', async (req, res) => {
 	try {
-		const { userId } = req.body;
-
 		// Create a new payment record
 		const newPaymentRecord = await paymentModel.create(req.body);
 
