@@ -3,7 +3,6 @@ const SignUp = require("../models/SignUpModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
-const SignUpModel = require("../models/SignUpModel");
 
 exports.emailCheck = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -84,9 +83,9 @@ exports.FetchUser = asyncHandler(async (req, res) => {
 });
 
 exports.Login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { user_email, password } = req.body;
   console.log(req.body);
-  const result = await SignUp.findOne({ email });
+  const result = await SignUp.findOne({ user_email });
 
   if (!result) {
     return res.status(401).json({ msg: "Email is not registered with us" });
