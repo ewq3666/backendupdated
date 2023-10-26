@@ -4,7 +4,9 @@ const contestSchema = mongoose.Schema(
     {
         name: String,
         price: String,
-        leaderboard: Array
+        leaderboard: Array,
+        date: Date,  // Separate field for date
+        time: String // Separate field for time
     },
     { timestamps: true }
 );

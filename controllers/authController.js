@@ -4,6 +4,34 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
 
+exports.emailCheck = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  try {
+    console.log(email);
+    if (!email) {
+      return res.status(200).send("please provide email")
+    }
+    if (email) {
+      const found = await SignUp.findOne({ user_email: email });
+      if (found) {
+        return res.status(200).json({
+          msg: "Email Already exist",
+          registered: true
+        });
+      }
+    }
+    return res.status(200).json({
+      msg: "no email register",
+      registered: false
+    });
+  } catch (error) {
+    return res.status(500).json({
+      msg: "error"
+    });
+  }
+
+});
+
 exports.SignUpUser = asyncHandler(async (req, res) => {
   const { password, email } = req.body;
   const found = await SignUp.findOne({ email });
