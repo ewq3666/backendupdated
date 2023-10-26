@@ -18,6 +18,8 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use("/api", require("./routes/authRoute"));
 app.use("/api", require("./routes/quetionsRoute"));
+app.use("/api", require("./controllers/payment"));
+app.use("/api", require("./controllers/razorpay"));
 
 
 app.use((err, req, res, next) => {
