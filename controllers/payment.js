@@ -18,7 +18,28 @@ router.post('/addmoney', async (req, res) => {
 		res.status(500).send('Internal Server Error');
 	}
 });
+router.post("/addmoney/:id", isUser, async (req, res) => {
+	const userId = req.params.id
+	try {
+		const user = await paymentModel.findOneAndUpdate({ userId }, req.body);
+		console.log(user);
+		if (user) {
+			res.status(200).json(user);
+		}
+	} catch (error) {
+		const { amount, username, userId } = req.body
+		try {
+			const user = await paymentModel.create({ username, amount, userId });
+			if (user) {
+				res.status(200).json(user);
+			}
+		} catch (error) {
+			console.error(error, "here is user");
+			res.status(500).send('Internal Server Error');
+		}
 
+	}
+})
 const userBalance = require('../models/BalanceModel');
 const WithdrawModel = require("../models/WithdrawModel");
 router.get("/balance", async (req, res) => {
@@ -30,7 +51,7 @@ router.get("/balance", async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		res.status(500).send('Internal Server Error');
-	}	
+	}
 })
 router.post("/balance/:id", isUser, async (req, res) => {
 	const userId = req.params.id
