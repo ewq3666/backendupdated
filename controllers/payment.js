@@ -1,3 +1,4 @@
+const { isUser } = require("../middleware/authProtected");
 const paymentModel = require("../models/AddPaymentModel");
 
 const router = require("express").Router();
@@ -18,39 +19,75 @@ router.post('/addmoney', async (req, res) => {
 	}
 });
 
-router.post('/withdrawal', async (req, res) => {
+const userBalance = require('../models/BalanceModel');
+const WithdrawModel = require("../models/WithdrawModel");
+router.get("/balance", async (req, res) => {
 	try {
-		const { userId, withdrawalAmount } = req.body;
-
-		// Create a new withdrawal request
-		const newWithdrawalRequest = await paymentModel.create({
-			userId,
-			withdrawalAmount,
-			isWithdrawalRequest: true,
-			isAproved: false
-		});
-
-		if (newWithdrawalRequest) {
-			res.status(200).send('Withdrawal request created successfully');
-		} else {
+		const users = await userBalance.find();
+		if (users) {
+			res.status(200).json(users);
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}	
+})
+router.post("/balance/:id", isUser, async (req, res) => {
+	const userId = req.params.id
+	try {
+		const user = await userBalance.findOneAndUpdate({ userId }, req.body);
+		console.log(user);
+		if (user) {
+			res.status(200).json(user);
+		}
+	} catch (error) {
+		const { balance, username, userId } = req.body
+		try {
+			const user = await userBalance.create({ balance, username, userId });
+			if (user) {
+				res.status(200).json(user);
+			}
+		} catch (error) {
+			console.error(error, "here is user");
 			res.status(500).send('Internal Server Error');
 		}
-	} catch (error) {
-		console.error(error);
-		res.status(500).send('Internal Server Error');
+
 	}
-});
-router.get('/admin/withdrawal-requests', async (req, res) => {
+})
+
+const widthdrawModel = require('../models/WithdrawModel')
+router.get("/withdraw", async (req, res) => {
 	try {
-		// Find all withdrawal requests where isApproved is false
-		const withdrawalRequests = await paymentModel.find({ isAproved: false });
-		if (withdrawalRequests) {
-			res.status(200).json(withdrawalRequests);
+		const users = await widthdrawModel.find();
+		if (users) {
+			res.status(200).json(users);
 		}
 	} catch (error) {
 		console.error(error);
 		res.status(500).send('Internal Server Error');
 	}
-});
+})
+router.post("/withdraw/:id", isUser, async (req, res) => {
+	const userId = req.params.id
+	try {
+		const user = await WithdrawModel.findOneAndUpdate({ userId }, req.body);
+		console.log(user);
+		if (user) {
+			res.status(200).json(user);
+		}
+	} catch (error) {
+		const { balance, username, userId } = req.body
+		try {
+			const user = await WithdrawModel.create({ balance, username, userId });
+			if (user) {
+				res.status(200).json(user);
+			}
+		} catch (error) {
+			console.error(error, "here is user");
+			res.status(500).send('Internal Server Error');
+		}
+
+	}
+})
 
 module.exports = router

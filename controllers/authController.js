@@ -12,8 +12,9 @@ exports.emailCheck = asyncHandler(async (req, res) => {
       return res.status(200).send("please provide email")
     }
     if (email) {
-      const found = await SignUp.findOne({ user_email: email });
-      if (found) {
+      const found = await SignUp.find({ user_email: email });
+      console.log(found);
+      if (found.length) {
         return res.status(200).json({
           msg: "Email Already exist",
           registered: true

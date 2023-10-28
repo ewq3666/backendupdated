@@ -25,5 +25,4 @@ router.post("/admin/contest", postContest);
 router.delete("/admin/contest/:id", deleteContest);
 router.get("/admin/contest", getContest);
 router.get("/contest", isUser, getContest);
-
 module.exports = router;
