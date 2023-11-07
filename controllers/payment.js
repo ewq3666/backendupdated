@@ -1,6 +1,6 @@
 const { isUser } = require("../middleware/authProtected");
 const paymentModel = require("../models/AddPaymentModel");
-
+const balanceModel = require('../models/BalanceModel')
 const router = require("express").Router();
 
 router.get('/addmoney', async (req, res) => {
@@ -20,10 +20,29 @@ router.get('/addmoney', async (req, res) => {
 });
 router.post('/addmoney', async (req, res) => {
 	try {
+		const { userId, amount } = req.body;
+
+		// Find the current balance of the user
+		let userBalance = await balanceModel.findOne({ userId });
+
+		if (!userBalance) {
+			// If user doesn't have a balance, create a new record
+			userBalance = await balanceModel.create({
+				userId,
+				balance: amount, // Initialize with the new amount
+				username: req.body.username // Replace with the actual username
+			});
+		} else {
+			// Add the new amount to the current balance
+			userBalance.balance = parseFloat(userBalance.balance) + parseFloat(amount);
+			// Update the balance in the database
+			userBalance = await userBalance.save();
+		}
+
 		// Create a new payment record
 		const newPaymentRecord = await paymentModel.create(req.body);
 
-		if (newPaymentRecord) {
+		if (newPaymentRecord && userBalance) {
 			res.status(200).send('Money added successfully');
 		} else {
 			res.status(500).send('Internal Server Error');
@@ -33,6 +52,7 @@ router.post('/addmoney', async (req, res) => {
 		res.status(500).send('Internal Server Error');
 	}
 });
+
 router.post("/addmoney/:id", isUser, async (req, res) => {
 	const userId = req.params.id
 	try {
@@ -104,26 +124,55 @@ router.get("/withdraw", async (req, res) => {
 	}
 })
 router.post("/withdraw/:id", isUser, async (req, res) => {
-	const userId = req.params.id
-	try {
-		const user = await WithdrawModel.findOneAndUpdate({ userId }, req.body);
-		console.log(user);
-		if (user) {
-			res.status(200).json(user);
-		}
-	} catch (error) {
-		const { balance, username, userId } = req.body
-		try {
-			const user = await WithdrawModel.create({ balance, username, userId });
-			if (user) {
-				res.status(200).json(user);
-			}
-		} catch (error) {
-			console.error(error, "here is user");
-			res.status(500).send('Internal Server Error');
-		}
+    const userId = req.params.id;
+    try {
+        const { amount, username } = req.body;
 
-	}
-})
+        // Find the current balance of the user
+        let userBalance = await balanceModel.findOne({ userId });
+
+        if (!userBalance || parseFloat(userBalance.balance) < parseFloat(amount)) {
+            return res.status(400).send('Insufficient balance');
+        }
+
+        // Subtract the withdrawal amount from the current balance
+        userBalance.balance = parseFloat(userBalance.balance) - parseFloat(amount);
+
+        // Update the balance in the database
+        userBalance = await userBalance.save();
+
+        // Create a new withdrawal record
+        const newWithdrawalRecord = await WithdrawModel.create({
+            userId,
+            amount,
+            username
+        });
+
+        if (newWithdrawalRecord && userBalance) {
+            res.status(200).json(newWithdrawalRecord);
+        } else {
+            res.status(500).send('Internal Server Error');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.get('/balance/:id', isUser, async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const userBalance = await balanceModel.findOne({ userId });
+
+        if (!userBalance) {
+            return res.status(404).send('User not found');
+        }
+
+        res.status(200).json({ balance: userBalance.balance });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 module.exports = router
