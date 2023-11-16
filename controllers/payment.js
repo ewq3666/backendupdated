@@ -233,7 +233,7 @@ router.get("/withdraw-requests/:id", async (req, res) => {
 	const id = req.params.id
 	try {
 
-		const userBalance = await WithdrawalRequestModel.findMany({ userId: id });
+		const userBalance = await WithdrawalRequestModel.find({ userId: id });
 
 		if (userBalance) {
 			res.status(200).json(userBalance);
