@@ -18,6 +18,22 @@ router.get('/addmoney', async (req, res) => {
 		res.status(500).send('Internal Server Error');
 	}
 });
+router.get('/addmoney/:id', async (req, res) => {
+
+	try {
+		// Create a new payment record
+		const payment = await paymentModel.find({userId:req.params.id});
+
+		if (payment) {
+			res.status(200).send(payment);
+		} else {
+			res.status(500).send('Internal Server Error');
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
+});
 router.post('/addmoney', async (req, res) => {
 	try {
 		const { userId, amount } = req.body;
