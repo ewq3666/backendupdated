@@ -126,45 +126,45 @@ router.get("/withdraw", async (req, res) => {
 
 // Route for admin to approve a withdrawal request
 router.post("/withdraw/:id", async (req, res) => {
-    const requestId = req.params.id;
-    try {
-        const { amount, username,userId } = req.body;
+	const requestId = req.params.id;
+	try {
+		const { amount, username, userId } = req.body;
 
-        // Find the current balance of the user
-        let userBalance = await balanceModel.findOne({ userId: userId });
+		// Find the current balance of the user
+		let userBalance = await balanceModel.findOne({ userId: userId });
 		console.log(userBalance);
-        if (!userBalance || parseFloat(userBalance.balance) < parseFloat(amount)) {
-            return res.status(400).send('Insufficient balance');
-        }
+		if (!userBalance || parseFloat(userBalance.balance) < parseFloat(amount)) {
+			return res.status(400).send('Insufficient balance');
+		}
 
-        // Subtract the withdrawal amount from the current balance
-        userBalance.balance = parseFloat(userBalance.balance) - parseFloat(amount);
+		// Subtract the withdrawal amount from the current balance
+		userBalance.balance = parseFloat(userBalance.balance) - parseFloat(amount);
 
-        // Update the balance in the database
-        userBalance = await userBalance.save();
+		// Update the balance in the database
+		userBalance = await userBalance.save();
 
-        // Update the withdrawal request status to completed
-        const updatedWithdrawalRequest = await WithdrawalRequestModel.findOneAndUpdate(
-            { _id: requestId },
-            { status: "completed" },
-        );
+		// Update the withdrawal request status to completed
+		const updatedWithdrawalRequest = await WithdrawalRequestModel.findOneAndUpdate(
+			{ _id: requestId },
+			{ status: "completed" },
+		);
 
-        // Create a new withdrawal record
-        const newWithdrawalRecord = await WithdrawModel.create({
-            userId: req.body.userId,
-            amount,
-            username
-        });
+		// Create a new withdrawal record
+		const newWithdrawalRecord = await WithdrawModel.create({
+			userId: req.body.userId,
+			amount,
+			username
+		});
 
-        if (newWithdrawalRecord && updatedWithdrawalRequest && userBalance) {
-            res.status(200).json(newWithdrawalRecord);
-        } else {
-            res.status(500).send('Internal Server Error');
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-    }
+		if (newWithdrawalRecord && updatedWithdrawalRequest && userBalance) {
+			res.status(200).json(newWithdrawalRecord);
+		} else {
+			res.status(500).send('Internal Server Error');
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
 });
 
 
@@ -216,8 +216,24 @@ router.post("/withdraw-request", isUser, async (req, res) => {
 });
 router.get("/withdraw-requests", async (req, res) => {
 	try {
-		
+
 		const userBalance = await WithdrawalRequestModel.find();
+
+		if (userBalance) {
+			res.status(200).json(userBalance);
+		} else {
+			res.status(500).send('Internal Server Error');
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
+});
+router.get("/withdraw-requests/:id", async (req, res) => {
+	const id = req.params.id
+	try {
+
+		const userBalance = await WithdrawalRequestModel.find({ userId: id });
 
 		if (userBalance) {
 			res.status(200).json(userBalance);

@@ -73,7 +73,6 @@ router.post("/add-quizzes/:contestId", async (req, res) => {
 
 const UserQuestionHistoryModel = require('../models/QuizHistory')
 // Assuming you have already stored quizzes in a QuizModel
-let allQuizzes = []; // Fetch and store all quizzes from the database
 
 router.get("/get-questions/:contestId", async (req, res) => {
     try {
