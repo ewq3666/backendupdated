@@ -10,7 +10,7 @@ const contestSchema = mongoose.Schema(
     {
         name: String,
         price: String,
-        leaderboard: Array,
+        winnings: Array,
         date: Date,
         time: String,
         quizzes: [quizSchema] // Reference to the quizSchema as an array within contestSchema
