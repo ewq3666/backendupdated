@@ -212,6 +212,15 @@ router.post("/withdraw-request", isUser, async (req, res) => {
 			return res.status(400).send('Insufficient balance');
 		}
 
+		// Check if there is a pending withdrawal request for the user
+		const pendingRequest = await WithdrawalRequestModel.findOne({
+			userId,
+			status: 'pending'
+		});
+		console.log(pendingRequest);
+		if (pendingRequest) {
+			return res.status(400).json({message:'There is already a pending withdrawal request',alreadyRequsted:true});		}
+
 		// Create a new withdrawal request
 		const withdrawalRequest = await WithdrawalRequestModel.create({
 			userId,
@@ -230,6 +239,7 @@ router.post("/withdraw-request", isUser, async (req, res) => {
 		res.status(500).send('Internal Server Error');
 	}
 });
+
 router.get("/withdraw-requests", async (req, res) => {
 	try {
 
