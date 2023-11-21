@@ -22,7 +22,7 @@ router.get('/addmoney/:id', async (req, res) => {
 
 	try {
 		// Create a new payment record
-		const payment = await paymentModel.find({userId:req.params.id});
+		const payment = await paymentModel.find({ userId: req.params.id });
 
 		if (payment) {
 			res.status(200).send(payment);
@@ -209,7 +209,7 @@ router.post("/withdraw-request", isUser, async (req, res) => {
 		const userBalance = await balanceModel.findOne({ userId });
 
 		if (!userBalance || parseFloat(userBalance.balance) < parseFloat(amount)) {
-			return res.status(400).send('Insufficient balance');
+			return res.status(400).json({message:'Insufficient balance'});
 		}
 
 		// Check if there is a pending withdrawal request for the user
@@ -219,7 +219,8 @@ router.post("/withdraw-request", isUser, async (req, res) => {
 		});
 		console.log(pendingRequest);
 		if (pendingRequest) {
-			return res.status(400).json({message:'There is already a pending withdrawal request',alreadyRequsted:true});		}
+			return res.status(400).json({ message: 'There is already a pending withdrawal request', alreadyRequsted: true });
+		}
 
 		// Create a new withdrawal request
 		const withdrawalRequest = await WithdrawalRequestModel.create({
