@@ -8,12 +8,13 @@ const quizSchema = new mongoose.Schema({
 
 const contestSchema = mongoose.Schema(
     {
-        name: String,
+        name: { type: String, required: true },
         price: String,
         winnings: Array,
         date: Date,
         time: String,
-        quizzes: [quizSchema] // Reference to the quizSchema as an array within contestSchema
+        quizzes: [quizSchema],
+        users: Array
     },
     { timestamps: true }
 );
