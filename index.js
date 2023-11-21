@@ -12,7 +12,7 @@ app.use(helmet());
 //   origin: 'http://localhost:3000', // Replace with your allowed domain
 //   optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
 // }
-// app.use(cors());
+app.use(cors());
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(express.json());
