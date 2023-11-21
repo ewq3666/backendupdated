@@ -9,7 +9,7 @@ const {
 	emailCheck,
 } = require("../controllers/authController");
 const { isUser } = require("../middleware/authProtected");
-const { postContest, getContest, deleteContest } = require("../controllers/admin");
+const { postContest, getContest, deleteContest, getContestId, joinContest } = require("../controllers/admin");
 const paymentModel = require("../models/AddPaymentModel");
 const router = require("express").Router();
 
@@ -24,5 +24,7 @@ router.post("/mail", sendMail);
 router.post("/admin/contest", postContest);
 router.delete("/admin/contest/:id", deleteContest);
 router.get("/admin/contest", getContest);
+router.get("/admin/contest/:id", getContestId);
 router.get("/contest", isUser, getContest);
+router.get("/joincontest", isUser, joinContest);
 module.exports = router;
