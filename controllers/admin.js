@@ -39,12 +39,10 @@ exports.joinContest = asyncHandler(async (req, res) => {
 
                     // Update contest price/winning
                     // For example, deducting the contest price from the first winning position
-                    if (foundContest.winnings && foundContest.winnings.length > 0) {
-                        foundContest.winnings[0] -= price;
-                    }
+                    
 
                     // Save the updated contest document
-                    await foundContest.save();
+                    
 
                     // Update user's balance
                     const userBalance = await Balance.findOne({ userId });
