@@ -19,25 +19,53 @@ exports.getContest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "something went wrong" })
     }
 });
+const Contest = require('../models/AdminModel');
+const Balance = require('../models/BalanceModel');
 
 exports.joinContest = asyncHandler(async (req, res) => {
     const { contestId, userId } = req.params;
 
     try {
         // Find the contest by its ID
-        const foundContest = await contest.findById(contestId);
+        const foundContest = await Contest.findById(contestId);
 
         if (foundContest) {
             // Check if the user ID is not already in the users array
             if (!foundContest.users.includes(userId)) {
-                // Add the user ID to the users array
-                foundContest.users.push(userId);
+                // Deduct an amount (assuming the price is deducted upon joining)
+                if (foundContest.price) {
+                    // Convert the price to a numeric value (you might want to handle validation)
+                    const price = parseFloat(foundContest.price);
 
-                // Save the updated contest document
-                await foundContest.save();
+                    // Update contest price/winning
+                    // For example, deducting the contest price from the first winning position
+                    if (foundContest.winnings && foundContest.winnings.length > 0) {
+                        foundContest.winnings[0] -= price;
+                    }
 
-                // Respond with a success message or updated contest data
-                res.status(200).json({ message: "User joined contest successfully", contest: foundContest });
+                    // Save the updated contest document
+                    await foundContest.save();
+
+                    // Update user's balance
+                    const userBalance = await Balance.findOne({ userId });
+
+                    if (userBalance) {
+                        // Deduct the price from the user's balance
+                        userBalance.balance -= price;
+                        await userBalance.save();
+
+                        // Add the user ID to the contest's users array
+                        foundContest.users.push(userId);
+                        await foundContest.save();
+
+                        // Respond with a success message or updated contest data
+                        res.status(200).json({ message: "User joined contest successfully" });
+                    } else {
+                        res.status(404).json({ message: "User balance not found" });
+                    }
+                } else {
+                    res.status(400).json({ message: "Contest price not specified" });
+                }
             } else {
                 res.status(400).json({ message: "User already joined this contest", alreadyJoined: true });
             }
@@ -49,6 +77,7 @@ exports.joinContest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Something went wrong" });
     }
 });
+
 
 exports.getContestId = asyncHandler(async (req, res) => {
     const id = req.params.id
