@@ -39,7 +39,12 @@ exports.joinContest = asyncHandler(async (req, res) => {
 
                     // Update contest price/winning
                     // For example, deducting the contest price from the first winning position
-                    
+                    if (foundContest.winnings && foundContest.winnings.length > 0) {
+                        foundContest.winnings[0] -= price;
+                    }
+
+                    // Save the updated contest document
+                    await foundContest.save();
 
                     // Update user's balance
                     const userBalance = await Balance.findOne({ userId });
@@ -73,6 +78,23 @@ exports.joinContest = asyncHandler(async (req, res) => {
     }
 });
 
+exports.getContestsByUserId = async (req, res) => {
+    console.log(req.params.userId);
+    try {
+        // Find contests where the users array contains the specified userId
+        const contests = await Contest.find({ users: req.params.userId });
+
+        // Return the contests found
+        if (contests.length > 0) {
+            res.status(200).json(contests);
+        } else {
+            res.status(400).json({ message: 'No contests joined yet' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching contests by userId' });
+    }
+};
 
 exports.getContestId = asyncHandler(async (req, res) => {
     const id = req.params.id

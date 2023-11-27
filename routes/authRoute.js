@@ -9,7 +9,7 @@ const {
 	emailCheck,
 } = require("../controllers/authController");
 const { isUser } = require("../middleware/authProtected");
-const { postContest, getContest, deleteContest, getContestId, joinContest } = require("../controllers/admin");
+const { postContest, getContest, deleteContest, getContestId, joinContest, getContestsByUserId } = require("../controllers/admin");
 const paymentModel = require("../models/AddPaymentModel");
 const router = require("express").Router();
 
@@ -27,4 +27,5 @@ router.get("/admin/contest", getContest);
 router.get("/admin/contest/:id", getContestId);
 router.get("/contest", isUser, getContest);
 router.post("/joincontest/:contestId/:userId",isUser, joinContest);
+router.get("/getJoinedContest/:userId", getContestsByUserId);
 module.exports = router;

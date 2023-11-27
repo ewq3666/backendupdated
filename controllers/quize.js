@@ -96,5 +96,50 @@ router.get("/get-questions/:contestId", async (req, res) => {
 });
 
 
+const Result = require('../models/Result');
+const Quiz = require('../models/AdminModel')
+router.post("/examsubmit/:contestId", async (req, res) => {
+    try {
+        const { userId, answers, time } = req.body;
+        const contestId = req.params.contestId;
+        // Fetch quiz questions for the specified contestId
+        const contest = await Quiz.findById(contestId);
+
+        if (!contest) {
+            return res.status(404).json({ message: 'Contest not found for the specified contestId' });
+        }
+
+        const quizQuestions = contest.quizzes;
+        console.log(quizQuestions);
+        if (quizQuestions.length !== answers.length) {
+            return res.status(404).json({ message: 'Quiz questions not found for the specified contestId' });
+        }
+
+        // Calculate marks based on correct answers
+        let obtainedMarks = 0;
+
+        quizQuestions.forEach((question, index) => {
+            console.log(question);
+
+            if (answers[index] === question.correctOptionIndex.toString()) {
+                obtainedMarks++;
+            }
+        });
+
+        // Save the result to the database
+        const result = new Result({
+            userId,
+            marks: obtainedMarks.toString(),
+            time,
+        });
+
+        await result.save();
+
+        res.status(200).json({ message: 'Exam result submitted successfully', obtainedMarks });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 module.exports = router
