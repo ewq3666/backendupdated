@@ -11,6 +11,12 @@ const resultSchema = mongoose.Schema(
     time: {
       type: String,
     },
+    contestId: {
+      type: String
+    },
+    rank: {
+      type: Number
+    }
   },
   { timestamps: true }
 );

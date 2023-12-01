@@ -54,7 +54,8 @@ router.post("/add-quizzes/:contestId", async (req, res) => {
         }
 
         // Push new quizzes into the contest's quizzes array
-        contest.quizzes.push(...quizzes);
+        console.log(quizzes);
+        contest.quizzes= JSON.parse(quizzes);
 
         // Save the updated contest with the new quizzes
         const updatedContest = await contest.save();
@@ -95,7 +96,6 @@ router.get("/get-questions/:contestId", async (req, res) => {
     }
 });
 
-
 const Result = require('../models/Result');
 const Quiz = require('../models/AdminModel')
 router.post("/examsubmit/:contestId", async (req, res) => {
@@ -103,6 +103,10 @@ router.post("/examsubmit/:contestId", async (req, res) => {
         const { userId, answers, time } = req.body;
         const contestId = req.params.contestId;
         // Fetch quiz questions for the specified contestId
+        const user = await Result.find({ userId, contestId })
+        if (user.length) {
+            return res.status(400).json({ message: 'already submitted exam', already: true })
+        }
         const contest = await Quiz.findById(contestId);
 
         if (!contest) {
@@ -110,7 +114,6 @@ router.post("/examsubmit/:contestId", async (req, res) => {
         }
 
         const quizQuestions = contest.quizzes;
-        console.log(quizQuestions);
         if (quizQuestions.length !== answers.length) {
             return res.status(404).json({ message: 'Quiz questions not found for the specified contestId' });
         }
@@ -119,7 +122,6 @@ router.post("/examsubmit/:contestId", async (req, res) => {
         let obtainedMarks = 0;
 
         quizQuestions.forEach((question, index) => {
-            console.log(question);
 
             if (answers[index] === question.correctOptionIndex.toString()) {
                 obtainedMarks++;
@@ -129,6 +131,7 @@ router.post("/examsubmit/:contestId", async (req, res) => {
         // Save the result to the database
         const result = new Result({
             userId,
+            contestId,
             marks: obtainedMarks.toString(),
             time,
         });
@@ -136,6 +139,86 @@ router.post("/examsubmit/:contestId", async (req, res) => {
         await result.save();
 
         res.status(200).json({ message: 'Exam result submitted successfully', obtainedMarks });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+router.get("/examsubmit/:contestId", async (req, res) => {
+    const contestId = req.params.contestId;
+    try {
+        const result = await Result.find({ contestId })
+        if (result.length) {
+            console.log(contestId,result.length);
+             res.status(200).json({ result })
+        }
+        else {
+            return res.status(400).json({ message:'result not anounce yet' })
+        }
+    } catch (error) {
+        return res.status(400).json({ isError: true, error })
+    }
+
+});
+router.get("/examsubmit/:contestId/:userId", async (req, res) => {
+    const contestId = req.params.contestId;
+    const userId = req.params.userId;
+    try {
+        const result = await Result.find({ contestId,userId })
+        if (result.length) {
+            console.log(contestId,result.length);
+             res.status(200).json({ result })
+        }
+        else {
+            return res.status(400).json({ message:'result not anounce yet' })
+        }
+    } catch (error) {
+        return res.status(400).json({ isError: true, error })
+    }
+
+});
+router.get("/results/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const result = await Result.find({userId })
+        if (result.length) {
+             res.status(200).json({ result })
+        }
+        else {
+            return res.status(400).json({ message:'result not anounce yet' })
+        }
+    } catch (error) {
+        return res.status(400).json({ isError: true, error })
+    }
+
+});
+
+// API endpoint to update ranks for a specific contest ID
+router.put("/updateRanks/:contestId", async (req, res) => {
+    try {
+        const contestId = req.params.contestId;
+
+        // Fetch all results for the specified contestId
+        const results = await Result.find({ contestId });
+
+        // Sort results based on time taken (lower time first) and obtained marks (higher marks first)
+        results.sort((a, b) => {
+            if (parseInt(b.marks) !== parseInt(a.marks)) {
+                return parseInt(b.marks) - parseInt(a.marks);
+            } else {
+                return parseFloat(a.time) - parseFloat(b.time);
+            }
+        });
+        
+
+        // Update ranks in the sorted order
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            await Result.findByIdAndUpdate(result._id, { rank: i + 1 }, { new: true });
+        }
+
+        res.status(200).json({ message: 'Ranks updated successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });

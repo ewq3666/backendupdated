@@ -13,7 +13,7 @@ const contestSchema = mongoose.Schema(
         winnings: Array,
         date: Date,
         time: String,
-        quizzes: [quizSchema],
+        quizzes: Array,
         users: Array
     },
     { timestamps: true }
